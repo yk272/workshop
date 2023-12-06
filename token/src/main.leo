@@ -126,4 +126,30 @@ program token.aleo {
         let sender_amount: u64 = Mapping::get_or_use(account, sender, 0u64);
         Mapping::set(account, sender, sender_amount - amount);
     }
+
+    finalize burn_public(public amount: u64) {
+        // Decrements `account[sender]` by `amount`.
+        // If `account[sender]` does not exist, it will be created.
+        // If `account[sender] - amount` underflows, `transfer_public` is reverted.
+        let sender_amount: u64 = Mapping::get_or_use(account, self.caller, 0u64);
+        Mapping::set(account, self.caller, sender_amount - amount);  
+     
+    }
+
+    finalize burn_private(sender: token, amount: u64) -> (token, token) {
+        // Checks the given token record has sufficient balance.
+        // This `sub` operation is safe, and the proof will fail if an overflow occurs.
+        // `difference` holds the change amount to be returned to sender.
+        let difference: u64 = sender.amount - amount;
+
+
+        // Produce a token record for the specified receiver.
+        let burned: token = token {
+            owner: sender.owner,
+            amount: difference,
+        };
+
+        // Output the sender's change record and the receiver's record.
+        return burned;
+    }
 }
